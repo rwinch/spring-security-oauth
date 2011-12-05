@@ -32,10 +32,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Dave Syer
- * 
+ *
  */
 @Controller
 public class TokenEndpoint extends AbstractEndpoint {
@@ -43,7 +44,7 @@ public class TokenEndpoint extends AbstractEndpoint {
 	private OAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
 
 	@RequestMapping(value = "/oauth/token")
-	public ResponseEntity<String> getAccessToken(@RequestParam("grant_type") String grantType,
+	public @ResponseBody OAuth2AccessToken getAccessToken(@RequestParam("grant_type") String grantType,
 			@RequestParam Map<String, String> parameters, @RequestHeader HttpHeaders headers) {
 
 		String[] clientValues = findClientSecret(headers, parameters);
@@ -55,8 +56,8 @@ public class TokenEndpoint extends AbstractEndpoint {
 		if (token == null) {
 			throw new UnsupportedGrantTypeException("Unsupported grant type: " + grantType);
 		}
-
-		return getResponse(token);
+		getResponse(token);
+		return token;
 
 	}
 
