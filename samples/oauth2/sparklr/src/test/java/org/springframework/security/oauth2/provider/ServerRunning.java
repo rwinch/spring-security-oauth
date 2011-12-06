@@ -43,22 +43,22 @@ import org.springframework.web.util.UriUtils;
  * the server is not running in the background all the tests here will simply be skipped because of a violated
  * assumption (showing as successful). Usage:
  * </p>
- * 
+ *
  * <pre>
  * &#064;Rule public static BrokerRunning brokerIsRunning = BrokerRunning.isRunning();
- * 
+ *
  * &#064;Test public void testSendAndReceive() throws Exception { // ... test using RabbitTemplate etc. }
  * </pre>
  * <p>
  * The rule can be declared as static so that it only has to check once for all tests in the enclosing test case, but
  * there isn't a lot of overhead in making it non-static.
  * </p>
- * 
+ *
  * @see Assume
  * @see AssumptionViolatedException
- * 
+ *
  * @author Dave Syer
- * 
+ *
  */
 @SuppressWarnings("deprecation")
 public class ServerRunning extends TestWatchman {
@@ -190,7 +190,7 @@ public class ServerRunning extends TestWatchman {
 	public ResponseEntity<String> postForString(String path, HttpHeaders headers, MultiValueMap<String, String> formData) {
 		HttpHeaders actualHeaders = new HttpHeaders();
 		actualHeaders.putAll(headers);
-		actualHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_FORM_URLENCODED));
+		actualHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		return client.exchange(getUrl(path), HttpMethod.POST, new HttpEntity<MultiValueMap<String, String>>(formData,
 				actualHeaders), String.class);
 	}

@@ -19,6 +19,7 @@ package org.springframework.security.oauth2.provider.endpoint;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,7 +33,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Dave Syer
@@ -44,7 +44,7 @@ public class TokenEndpoint extends AbstractEndpoint {
 	private OAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
 
 	@RequestMapping(value = "/oauth/token")
-	public @ResponseBody OAuth2AccessToken getAccessToken(@RequestParam("grant_type") String grantType,
+	public HttpEntity<OAuth2AccessToken> getAccessToken(@RequestParam("grant_type") String grantType,
 			@RequestParam Map<String, String> parameters, @RequestHeader HttpHeaders headers) {
 
 		String[] clientValues = findClientSecret(headers, parameters);
@@ -56,9 +56,10 @@ public class TokenEndpoint extends AbstractEndpoint {
 		if (token == null) {
 			throw new UnsupportedGrantTypeException("Unsupported grant type: " + grantType);
 		}
-		getResponse(token);
-		return token;
-
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.set("Cache-Control", "no-store");
+		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<OAuth2AccessToken>(token, responseHeaders, HttpStatus.OK);
 	}
 
 	private ResponseEntity<String> getResponse(OAuth2AccessToken accessToken) {

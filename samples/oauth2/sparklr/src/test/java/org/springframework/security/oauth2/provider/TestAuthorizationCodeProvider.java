@@ -123,28 +123,27 @@ public class TestAuthorizationCodeProvider {
 
 		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		// FIXME remove this comment out
-//		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
+		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
 
 		DefaultOAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
 		OAuth2AccessToken accessToken = serializationService.deserializeJsonAccessToken(new ByteArrayInputStream(
 				response.getBody().getBytes()));
 
 		// let's try that request again and make sure we can't re-use the authorization code...
-//		response = serverRunning.postForString("/sparklr2/oauth/token", formData);
-//		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-//		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
-//		try {
-//			throw serializationService.deserializeJsonError(new ByteArrayInputStream(response.getBody().getBytes()));
-//		}
-//		catch (OAuth2Exception e) {
-//			assertTrue(e instanceof InvalidGrantException);
-//		}
+		response = serverRunning.postForString("/sparklr2/oauth/token", formData);
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
+		try {
+			throw serializationService.deserializeJsonError(new ByteArrayInputStream(response.getBody().getBytes()));
+		}
+		catch (OAuth2Exception e) {
+			assertTrue(e instanceof InvalidGrantException);
+		}
 
 		// now try and use the token to access a protected resource.
 
 		// first make sure the resource is actually protected.
-//		assertNotSame(HttpStatus.OK, serverRunning.getStatusCode("/sparklr2/photos?format=json"));
+		assertNotSame(HttpStatus.OK, serverRunning.getStatusCode("/sparklr2/photos?format=json"));
 
 		// now make sure an authorized request is valid.
 		HttpHeaders headers = new HttpHeaders();

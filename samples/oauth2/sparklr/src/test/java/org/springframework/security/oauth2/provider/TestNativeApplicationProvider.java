@@ -5,12 +5,14 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.oauth2.common.DefaultOAuth2SerializationService;
@@ -75,6 +77,7 @@ public class TestNativeApplicationProvider {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization",
 				String.format("Basic %s", new String(Base64.encode("my-trusted-client:".getBytes("UTF-8")), "UTF-8")));
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
 		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", headers, formData);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
