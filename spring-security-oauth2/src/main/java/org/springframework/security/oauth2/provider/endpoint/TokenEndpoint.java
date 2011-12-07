@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Dave Syer
+ * @author Rob Winch
  *
  */
 @Controller
@@ -58,16 +59,9 @@ public class TokenEndpoint extends AbstractEndpoint {
 		}
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Cache-Control", "no-store");
+		responseHeaders.set("Pragma", "no-cache");
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<OAuth2AccessToken>(token, responseHeaders, HttpStatus.OK);
-	}
-
-	private ResponseEntity<String> getResponse(OAuth2AccessToken accessToken) {
-		String serialization = serializationService.serialize(accessToken);
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("Cache-Control", "no-store");
-		headers.setContentType(MediaType.APPLICATION_JSON);
-		return new ResponseEntity<String>(serialization, headers, HttpStatus.OK);
+		return new ResponseEntity<OAuth2AccessToken>(token, responseHeaders, HttpStatus.OK);
 	}
 
 }
