@@ -80,7 +80,6 @@ public class TestOAuth2AccessTokenJsonDeserializer extends BaseOAuth2AccessToken
 		else {
 			assertEquals(expectedRefreshToken.getValue(), actual.getRefreshToken().getValue());
 		}
-		assertEquals(expected.getScope().size(), actual.getScope().size());
 		assertEquals(expected.getScope(), actual.getScope());
 		Date expectedExpiration = expected.getExpiration();
 		if (expectedExpiration == null) {
