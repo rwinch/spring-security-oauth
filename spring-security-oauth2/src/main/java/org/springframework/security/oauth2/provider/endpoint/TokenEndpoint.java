@@ -19,14 +19,11 @@ package org.springframework.security.oauth2.provider.endpoint;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.common.DefaultOAuth2SerializationService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2SerializationService;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.common.util.OAuth2Utils;
 import org.springframework.stereotype.Controller;
@@ -42,10 +39,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class TokenEndpoint extends AbstractEndpoint {
 
-	private OAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
-
 	@RequestMapping(value = "/oauth/token")
-	public HttpEntity<OAuth2AccessToken> getAccessToken(@RequestParam("grant_type") String grantType,
+	public ResponseEntity<OAuth2AccessToken> getAccessToken(@RequestParam("grant_type") String grantType,
 			@RequestParam Map<String, String> parameters, @RequestHeader HttpHeaders headers) {
 
 		String[] clientValues = findClientSecret(headers, parameters);

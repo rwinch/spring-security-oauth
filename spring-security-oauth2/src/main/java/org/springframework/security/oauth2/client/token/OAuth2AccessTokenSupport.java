@@ -24,11 +24,9 @@ import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedExc
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.auth.ClientAuthenticationHandler;
 import org.springframework.security.oauth2.client.token.auth.DefaultClientAuthenticationHandler;
-import org.springframework.security.oauth2.common.DefaultOAuth2SerializationService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2SerializationService;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.common.exceptions.SerializationException;
+import org.springframework.security.oauth2.http.converter.CompositeHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -40,7 +38,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Base support logic for obtaining access tokens.
- * 
+ *
  * @author Ryan Heaton
  * @author Dave Syer
  */
@@ -51,8 +49,6 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 	private static final FormHttpMessageConverter FORM_MESSAGE_CONVERTER = new FormHttpMessageConverter();
 
 	private final RestTemplate restTemplate;
-
-	private OAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
 
 	private ClientAuthenticationHandler authenticationHandler = new DefaultClientAuthenticationHandler();
 
@@ -70,19 +66,10 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(restTemplate, "A RestTemplate is required.");
-		Assert.notNull(serializationService, "OAuth2 serialization service is required.");
 	}
 
 	protected RestTemplate getRestTemplate() {
 		return restTemplate;
-	}
-
-	protected OAuth2SerializationService getSerializationService() {
-		return serializationService;
-	}
-
-	public void setSerializationService(OAuth2SerializationService serializationService) {
-		this.serializationService = serializationService;
 	}
 
 	protected ClientAuthenticationHandler getAuthenticationHandler() {
@@ -101,8 +88,8 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 			HttpHeaders headers = new HttpHeaders();
 			getAuthenticationHandler().authenticateTokenRequest(resource, form, headers);
 
-			return getRestTemplate().execute(getAccessTokenUri(resource, form), getHttpMethod(),
-					getRequestCallback(resource, form, headers), getResponseExtractor(), form.toSingleValueMap());
+			return getRestTemplate().getForObject(getAccessTokenUri(resource, form), OAuth2AccessToken.class, getHttpMethod(),
+					getRequestCallback(resource, form, headers), form.toSingleValueMap());
 
 		}
 		catch (OAuth2Exception oe) {
@@ -178,25 +165,14 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 	}
 
 	private class AccessTokenErrorHandler extends DefaultResponseErrorHandler {
-
+		private HttpMessageConverter<OAuth2Exception> errorConverter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
 		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
 			MediaType contentType = response.getHeaders().getContentType();
 			if (contentType != null
 					&& (response.getStatusCode().value() == 400 || response.getStatusCode().value() == 401)) {
-				if (MediaType.APPLICATION_JSON.includes(contentType)) {
-					try {
-						throw getSerializationService().deserializeJsonError(response.getBody());
-					}
-					catch (SerializationException e) {
-						throw new OAuth2Exception(
-								"Error getting the access token, and unable to read the details of the error in the JSON response.",
-								e);
-					}
-				}
-				else if (MediaType.APPLICATION_FORM_URLENCODED.includes(contentType)) {
-					MultiValueMap<String, String> map = FORM_MESSAGE_CONVERTER.read(null, response);
-					throw getSerializationService().deserializeError(map.toSingleValueMap());
+				if(errorConverter.canRead(OAuth2Exception.class, contentType)) {
+					throw errorConverter.read(OAuth2Exception.class, response);
 				}
 			}
 
@@ -206,6 +182,7 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 	}
 
 	private class OAuth2AccessTokenMessageConverter extends AbstractHttpMessageConverter<OAuth2AccessToken> {
+		private HttpMessageConverter<OAuth2AccessToken> tokenConverter = CompositeHttpMessageConverter.ACCESS_TOKEN_CONVERTER;
 
 		private OAuth2AccessTokenMessageConverter() {
 			super(new MediaType("*", "*"));
@@ -219,22 +196,7 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 		@Override
 		protected OAuth2AccessToken readInternal(Class<? extends OAuth2AccessToken> clazz, HttpInputMessage response)
 				throws IOException, HttpMessageNotReadableException {
-			MediaType contentType = response.getHeaders().getContentType();
-			if (contentType != null && MediaType.APPLICATION_JSON.includes(contentType)) {
-				try {
-					return getSerializationService().deserializeJsonAccessToken(response.getBody());
-				}
-				catch (SerializationException e) {
-					throw new OAuth2Exception(
-							"Error getting the access token, and unable to read the details of the error in the JSON response.",
-							e);
-				}
-			}
-			else {
-				// the spec currently says json is required, but facebook, for example, still returns form-encoded.
-				MultiValueMap<String, String> map = FORM_MESSAGE_CONVERTER.read(null, response);
-				return getSerializationService().deserializeAccessToken(map.toSingleValueMap());
-			}
+			return tokenConverter.read(clazz, response);
 		}
 
 		@Override

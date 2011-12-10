@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,8 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.crypto.codec.Base64;
-import org.springframework.security.oauth2.common.DefaultOAuth2SerializationService;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.util.LinkedMultiValueMap;
@@ -43,13 +42,11 @@ public class TestNativeApplicationProvider {
 		formData.add("username", "marissa");
 		formData.add("password", "koala");
 
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
+		ResponseEntity<OAuth2AccessToken> response = serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", formData);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
 
-		DefaultOAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
-		OAuth2AccessToken accessToken = serializationService.deserializeJsonAccessToken(new ByteArrayInputStream(
-				response.getBody().getBytes()));
+		OAuth2AccessToken accessToken = response.getBody();
 
 		// now try and use the token to access a protected resource.
 
@@ -79,13 +76,11 @@ public class TestNativeApplicationProvider {
 				String.format("Basic %s", new String(Base64.encode("my-trusted-client:".getBytes("UTF-8")), "UTF-8")));
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", headers, formData);
+		ResponseEntity<OAuth2AccessToken> response = serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", headers, formData);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
 
-		DefaultOAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
-		OAuth2AccessToken accessToken = serializationService.deserializeJsonAccessToken(new ByteArrayInputStream(
-				response.getBody().getBytes()));
+		OAuth2AccessToken accessToken = response.getBody();
 
 		// now try and use the token to access a protected resource.
 
@@ -156,20 +151,22 @@ public class TestNativeApplicationProvider {
 		formData.add("client_id", "my-untrusted-client-with-registered-redirect");
 		formData.add("username", "marissa");
 		formData.add("password", "koala");
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
+		ClientHttpResponse response =  null;
+		OAuth2Exception oauthException = null;
+		try {
+			serverRunning.postFor(MultiValueMap.class,"/sparklr2/oauth/token", formData);
+			fail("Expected Exception");
+		}catch(ExtendedHttpClientErrorException e) {
+			response = e.getResponse();
+			oauthException = (OAuth2Exception) e.getCause().getCause();
+		}
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		List<String> newCookies = response.getHeaders().get("Set-Cookie");
 		if (newCookies != null && !newCookies.isEmpty()) {
 			fail("No cookies should be set. Found: " + newCookies.get(0) + ".");
 		}
 		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
-
-		DefaultOAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
-		try {
-			throw serializationService.deserializeJsonError(new ByteArrayInputStream(response.getBody().getBytes()));
-		} catch (OAuth2Exception e) {
-			assertEquals("invalid_grant", e.getOAuth2ErrorCode());
-		}
+		assertEquals("invalid_grant", oauthException.getOAuth2ErrorCode());
 	}
 
 	/**
@@ -185,13 +182,11 @@ public class TestNativeApplicationProvider {
 		formData.add("username", "marissa");
 		formData.add("password", "koala");
 
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
+		ResponseEntity<OAuth2AccessToken> response = serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", formData);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
 
-		DefaultOAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
-		OAuth2AccessToken accessToken = serializationService.deserializeJsonAccessToken(new ByteArrayInputStream(
-				response.getBody().getBytes()));
+		OAuth2AccessToken accessToken = response.getBody();
 
 		// now try and use the token to access a protected resource.
 

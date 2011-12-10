@@ -27,13 +27,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.http.converter.CompositeHttpMessageConverter;
 import org.springframework.security.oauth2.provider.error.DefaultProviderExceptionHandler;
 import org.springframework.security.oauth2.provider.error.ProviderExceptionHandler;
 import org.springframework.web.filter.GenericFilterBean;
 
 /**
  * Filter for handling OAuth2-specific exceptions.
- * 
+ *
  * @author Ryan Heaton
  * @author Dave Syer
  */
@@ -59,15 +63,15 @@ public class OAuth2ExceptionHandlerFilter extends GenericFilterBean {
 		catch (Exception ex) {
 
 			try {
-				ResponseEntity<String> result = providerExceptionHandler.handle(ex);
+				ResponseEntity<OAuth2Exception> result = providerExceptionHandler.handle(ex);
+				HttpMessageConverter<OAuth2Exception> converter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
 				response.setStatus(result.getStatusCode().value());
 				for (Entry<String, List<String>> entry : result.getHeaders().entrySet()) {
 					for (String value : entry.getValue()) {
 						response.addHeader(entry.getKey(), value);
 					}
 				}
-				response.getWriter().write(result.getBody());
-				response.flushBuffer();
+				converter.write(result.getBody(), result.getHeaders().getContentType(), new ServletServerHttpResponse(response));
 			}
 			catch (ServletException e) {
 				throw e;

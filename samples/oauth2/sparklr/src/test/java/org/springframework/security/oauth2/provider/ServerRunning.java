@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.CommonsClientHttpRequestFactory;
+import org.springframework.security.oauth2.http.converter.OAuth2ResponseErrorHandler;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
@@ -181,18 +182,26 @@ public class ServerRunning extends TestWatchman {
 	}
 
 	public ResponseEntity<String> postForString(String path, MultiValueMap<String, String> formData) {
+		return postFor(String.class,path,formData);
+	}
+
+	public <T> ResponseEntity<T> postFor(Class<T> clazz, String path, MultiValueMap<String, String> formData) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		return client.exchange(getUrl(path), HttpMethod.POST, new HttpEntity<MultiValueMap<String, String>>(formData,
-				headers), String.class);
+				headers), clazz);
 	}
 
-	public ResponseEntity<String> postForString(String path, HttpHeaders headers, MultiValueMap<String, String> formData) {
+	public <T> ResponseEntity<T> postFor(Class<T> clazz, String path, HttpHeaders headers, MultiValueMap<String, String> formData) {
 		HttpHeaders actualHeaders = new HttpHeaders();
 		actualHeaders.putAll(headers);
 		actualHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		return client.exchange(getUrl(path), HttpMethod.POST, new HttpEntity<MultiValueMap<String, String>>(formData,
-				actualHeaders), String.class);
+				actualHeaders), clazz);
+	}
+
+	public ResponseEntity<String> postForString(String path, HttpHeaders headers, MultiValueMap<String, String> formData) {
+		return postFor(String.class,path,headers,formData);
 	}
 
 	public ResponseEntity<Void> postForStatus(String path, HttpHeaders headers, MultiValueMap<String, String> formData) {
@@ -240,12 +249,18 @@ public class ServerRunning extends TestWatchman {
 		};
 		client.setRequestFactory(requestFactory);
 		client.setErrorHandler(new ResponseErrorHandler() {
+			private OAuth2ResponseErrorHandler delegate = new OAuth2ResponseErrorHandler();
 			// Pass errors through in response entity for status code analysis
 			public boolean hasError(ClientHttpResponse response) throws IOException {
-				return false;
+				return delegate.hasError(response);
 			}
 
 			public void handleError(ClientHttpResponse response) throws IOException {
+				try {
+					delegate.handleError(response);
+				} catch(Exception e) {
+					throw new ExtendedHttpClientErrorException(response, e);
+				}
 			}
 		});
 		return client;

@@ -23,28 +23,27 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.common.DefaultOAuth2SerializationService;
 import org.springframework.security.oauth2.common.DefaultThrowableAnalyzer;
-import org.springframework.security.oauth2.common.OAuth2SerializationService;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.web.util.ThrowableAnalyzer;
 
 /**
  * @author Dave Syer
- * 
+ *
  */
 public class DefaultProviderExceptionHandler implements ProviderExceptionHandler {
 
 	/** Logger available to subclasses */
 	private static final Log logger = LogFactory.getLog(DefaultProviderExceptionHandler.class);
 
-	private OAuth2SerializationService serializationService = new DefaultOAuth2SerializationService();
+	private HttpMessageConverter<OAuth2Exception> converter;
 
 	private ThrowableAnalyzer throwableAnalyzer = new DefaultThrowableAnalyzer();
 
-	public ResponseEntity<String> handle(Exception e) throws Exception {
+	public ResponseEntity<OAuth2Exception> handle(Exception e) throws Exception {
 
 		// Try to extract a SpringSecurityException from the stacktrace
 		Throwable[] causeChain = throwableAnalyzer.determineCauseChain(e);
@@ -64,7 +63,7 @@ public class DefaultProviderExceptionHandler implements ProviderExceptionHandler
 
 	}
 
-	private ResponseEntity<String> handleSecurityException(OAuth2Exception e) throws IOException {
+	private ResponseEntity<OAuth2Exception> handleSecurityException(OAuth2Exception e) throws IOException {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("OAuth error.", e);
@@ -72,22 +71,19 @@ public class DefaultProviderExceptionHandler implements ProviderExceptionHandler
 
 		int status = e.getHttpErrorCode();
 		HttpHeaders headers = new HttpHeaders();
-		String serialization = serializationService.serialize((OAuth2Exception) e);
 		headers.set("Cache-Control", "no-store");
 		headers.setContentType(MediaType.APPLICATION_JSON);
-
-		ResponseEntity<String> response = new ResponseEntity<String>(serialization, headers, HttpStatus.valueOf(status));
-
-		return response;
-
+		return new ResponseEntity<OAuth2Exception>(e,headers,HttpStatus.valueOf(status));
+		// FIXME Remove Provider Exception Handler
+//		converter.write(e, contentType, outputMessage)
+//		String serialization = serializationService.serialize((OAuth2Exception) e);
+//
+//		ResponseEntity<String> response = new ResponseEntity<String>(serialization, headers, HttpStatus.valueOf(status));
+//
+//		return response;
+//		return null;
 	}
 
 	public void setThrowableAnalyzer(ThrowableAnalyzer throwableAnalyzer) {
 		this.throwableAnalyzer = throwableAnalyzer;
-	}
-
-	public void setSerializationService(OAuth2SerializationService serializationService) {
-		this.serializationService = serializationService;
-	}
-
-}
+	}}

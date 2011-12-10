@@ -15,12 +15,13 @@ import org.springframework.security.oauth2.client.token.AccessTokenRequest;
 import org.springframework.security.oauth2.client.token.OAuth2AccessTokenSupport;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 /**
  * Provider for obtaining an oauth2 access token by using an authorization code.
- * 
+ *
  * @author Ryan Heaton
  * @author Dave Syer
  */
@@ -52,7 +53,7 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 		if (request.isError()) {
 
 			// there was an oauth error...
-			throw getSerializationService().deserializeError(request.toSingleValueMap());
+			throw OAuth2Exception.create(request.toSingleValueMap());
 
 		}
 		else if (request.getAuthorizationCode() == null) {

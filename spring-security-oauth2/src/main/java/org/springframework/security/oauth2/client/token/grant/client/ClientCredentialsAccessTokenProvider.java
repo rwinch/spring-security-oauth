@@ -11,12 +11,13 @@ import org.springframework.security.oauth2.client.token.AccessTokenProvider;
 import org.springframework.security.oauth2.client.token.OAuth2AccessTokenSupport;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 /**
  * Provider for obtaining an oauth2 access token by using client credentials.
- * 
+ *
  * @author Dave Syer
  */
 public class ClientCredentialsAccessTokenProvider extends OAuth2AccessTokenSupport implements AccessTokenProvider {
@@ -29,7 +30,7 @@ public class ClientCredentialsAccessTokenProvider extends OAuth2AccessTokenSuppo
 	public boolean supportsRefresh(OAuth2ProtectedResourceDetails resource) {
 		return false;
 	}
-	
+
 	public OAuth2AccessToken refreshAccessToken(OAuth2ProtectedResourceDetails resource,
 			OAuth2RefreshToken refreshToken, AccessTokenRequest request) throws UserRedirectRequiredException {
 		return null;
@@ -40,7 +41,7 @@ public class ClientCredentialsAccessTokenProvider extends OAuth2AccessTokenSuppo
 
 		if (request.isError()) {
 			// there was an oauth error...
-			throw getSerializationService().deserializeError(request.toSingleValueMap());
+			throw OAuth2Exception.create(request.toSingleValueMap());
 		} else {
 			ClientCredentialsResourceDetails resource = (ClientCredentialsResourceDetails) details;
 			return retrieveToken(getParametersForTokenRequest(resource), resource);

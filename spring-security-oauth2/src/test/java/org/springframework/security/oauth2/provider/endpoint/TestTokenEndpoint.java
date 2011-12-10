@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,17 +45,15 @@ public class TestTokenEndpoint {
 		endpoint.setTokenGranter(tokenGranter);
 
 		Map<String, String> parameters = new HashMap<String, String>();
-		
+
 		tokenGranter.grant("authorization_code", parameters, null, null, new HashSet<String>());
 		EasyMock.expectLastCall().andReturn(new OAuth2AccessToken("FOO"));
 		EasyMock.replay(tokenGranter);
-		
+
 		HttpHeaders headers = new HttpHeaders();
-		ResponseEntity<String> response = endpoint.getAccessToken("authorization_code", parameters, headers);
+		ResponseEntity<OAuth2AccessToken> response = endpoint.getAccessToken("authorization_code", parameters, headers);
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		String body = response.getBody();
-		assertTrue("Wrong body: "+body, body.contains("\"token_type\""));
 
 		EasyMock.verify(tokenGranter);
 

@@ -29,10 +29,10 @@ import org.springframework.security.oauth2.common.json.JSONTokener;
 
 /**
  * Default implementation of the OAuth 2 serialization service.
- * 
+ *
  * @author Ryan Heaton
  */
-public class DefaultOAuth2SerializationService implements OAuth2SerializationService {
+class DefaultOAuth2SerializationService implements OAuth2SerializationService {
 
 	public String serialize(OAuth2AccessToken accessToken) {
 		try {

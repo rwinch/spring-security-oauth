@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.client.token.AccessTokenRequest;
 import org.springframework.security.oauth2.client.token.OAuth2AccessTokenSupport;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -31,7 +32,7 @@ import org.springframework.web.client.ResponseExtractor;
  * parameters, together with any other information available (e.g. from a cookie), and decide if a user can be
  * authenticated and if the user has approved the grant of the access token. Only if those two conditions are met should
  * an access token be available through this provider.
- * 
+ *
  * @author Dave Syer
  */
 public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implements AccessTokenProvider {
@@ -39,11 +40,11 @@ public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implem
 	public boolean supportsResource(OAuth2ProtectedResourceDetails resource) {
 		return resource instanceof ImplicitResourceDetails && "implicit".equals(resource.getGrantType());
 	}
-	
+
 	public boolean supportsRefresh(OAuth2ProtectedResourceDetails resource) {
 		return false;
 	}
-	
+
 	public OAuth2AccessToken refreshAccessToken(OAuth2ProtectedResourceDetails resource,
 			OAuth2RefreshToken refreshToken, AccessTokenRequest request) throws UserRedirectRequiredException {
 		return null;
@@ -56,17 +57,12 @@ public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implem
 
 		if (request.isError()) {
 			// there was an oauth error...
-			throw getSerializationService().deserializeError(request.toSingleValueMap());
+			throw OAuth2Exception.create(request.toSingleValueMap());
 		}
 		else {
 			return retrieveToken(getParametersForTokenRequest(resource, request), resource);
 		}
 
-	}
-	
-	@Override
-	protected ResponseExtractor<OAuth2AccessToken> getResponseExtractor() {
-		return new ImplicitResponseExtractor();
 	}
 
 	private MultiValueMap<String, String> getParametersForTokenRequest(ImplicitResourceDetails resource,
@@ -104,17 +100,4 @@ public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implem
 		return form;
 
 	}
-
-	private final class ImplicitResponseExtractor implements ResponseExtractor<OAuth2AccessToken> {
-		public OAuth2AccessToken extractData(ClientHttpResponse response) throws IOException {
-			String fragment = response.getHeaders().getLocation().getFragment();
-			Map<String, String> map = new HashMap<String, String>();
-			Properties properties = StringUtils.splitArrayElementsIntoProperties(StringUtils.split(fragment, "&"), "=");
-			for (Object key : properties.keySet()) {
-				map.put(key.toString(), properties.get(key).toString());
-			}
-			return getSerializationService().deserializeAccessToken(map);
-		}
-	}
-
 }
