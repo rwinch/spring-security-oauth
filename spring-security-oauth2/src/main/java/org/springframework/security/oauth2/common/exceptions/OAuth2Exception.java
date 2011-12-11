@@ -71,7 +71,7 @@ public class OAuth2Exception extends AuthenticationException {
 
 	}
 
-	public static OAuth2Exception create(Map<String, String> errorParams) {
+	public static OAuth2Exception valueOf(Map<String, String> errorParams) {
 		String errorCode = errorParams.get("error");
 		String errorMessage = errorParams.containsKey("error_description") ? errorParams.get("error_description")
 				: null;

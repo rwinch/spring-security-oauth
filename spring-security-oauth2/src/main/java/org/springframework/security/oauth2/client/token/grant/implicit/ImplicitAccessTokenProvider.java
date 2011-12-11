@@ -57,7 +57,7 @@ public class ImplicitAccessTokenProvider extends OAuth2AccessTokenSupport implem
 
 		if (request.isError()) {
 			// there was an oauth error...
-			throw OAuth2Exception.create(request.toSingleValueMap());
+			throw OAuth2Exception.valueOf(request.toSingleValueMap());
 		}
 		else {
 			return retrieveToken(getParametersForTokenRequest(resource, request), resource);

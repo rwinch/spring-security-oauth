@@ -36,7 +36,7 @@ public class OAuth2ErrorHandler extends DefaultResponseErrorHandler {
 			Map<String, String> headerEntries = StringSplitUtils.splitEachArrayElementAndCreateMap(
 					StringSplitUtils.splitIgnoringQuotes(authenticateHeader.substring(headerType.length()),
 							','), "=", "\"");
-			throw OAuth2Exception.create(headerEntries);
+			throw OAuth2Exception.valueOf(headerEntries);
 		}
 	}
 }

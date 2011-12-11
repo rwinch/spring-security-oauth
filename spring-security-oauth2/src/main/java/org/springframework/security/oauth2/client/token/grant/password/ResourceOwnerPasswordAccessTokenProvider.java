@@ -41,7 +41,7 @@ public class ResourceOwnerPasswordAccessTokenProvider extends OAuth2AccessTokenS
 
 		if (request.isError()) {
 			// there was an oauth error...
-			throw OAuth2Exception.create(request.toSingleValueMap());
+			throw OAuth2Exception.valueOf(request.toSingleValueMap());
 		} else {
 			ResourceOwnerPasswordResourceDetails resource = (ResourceOwnerPasswordResourceDetails) details;
 			return retrieveToken(getParametersForTokenRequest(resource), resource);

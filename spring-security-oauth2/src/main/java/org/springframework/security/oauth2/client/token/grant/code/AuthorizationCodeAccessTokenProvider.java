@@ -53,7 +53,7 @@ public class AuthorizationCodeAccessTokenProvider extends OAuth2AccessTokenSuppo
 		if (request.isError()) {
 
 			// there was an oauth error...
-			throw OAuth2Exception.create(request.toSingleValueMap());
+			throw OAuth2Exception.valueOf(request.toSingleValueMap());
 
 		}
 		else if (request.getAuthorizationCode() == null) {

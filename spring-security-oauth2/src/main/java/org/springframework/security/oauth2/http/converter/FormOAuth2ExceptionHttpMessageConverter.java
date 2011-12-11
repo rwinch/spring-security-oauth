@@ -49,7 +49,7 @@ public final class FormOAuth2ExceptionHttpMessageConverter implements HttpMessag
 			throws IOException, HttpMessageNotReadableException {
 		MultiValueMap<String, String> data = delegateMessageConverter.read(null, inputMessage);
 		Map<String,String> flattenedData = data.toSingleValueMap();
-		return OAuth2Exception.create(flattenedData);
+		return OAuth2Exception.valueOf(flattenedData);
 	}
 
 	public void write(OAuth2Exception t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException,
