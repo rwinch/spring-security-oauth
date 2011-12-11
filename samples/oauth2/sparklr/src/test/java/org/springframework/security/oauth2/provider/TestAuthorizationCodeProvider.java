@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
@@ -141,7 +142,8 @@ public class TestAuthorizationCodeProvider {
 		try {
 			serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", formData);
 			fail("Expected Exception");
-		}catch(InvalidGrantException success) {
+		}catch(ExtendedHttpClientErrorException success) {
+			assertTrue(success.getOAuth2Exception() instanceof InvalidGrantException);
 		}
 
 		// now try and use the token to access a protected resource.
@@ -224,14 +226,15 @@ public class TestAuthorizationCodeProvider {
 		formData.add("client_id", "my-less-trusted-client");
 		formData.add("redirect_uri", "http://nowhere");
 		formData.add("code", code);
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
-
 		try {
-			mapper.readValue(response.getBody(), OAuth2AccessToken.class);
+			serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", formData);
 			fail("Expected Exception");
-		} catch(RedirectMismatchException success) {}
+		}catch(ExtendedHttpClientErrorException success) {
+			ClientHttpResponse response = success.getResponse();
+			assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+			assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
+			RedirectMismatchException oauthException = success.getOAuth2Exception();
+		}
 	}
 
 	/**
@@ -518,15 +521,15 @@ public class TestAuthorizationCodeProvider {
 		formData.add("client_id", "my-client-with-registered-redirect");
 		formData.add("code", code);
 
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
-
 		try {
-			mapper.readValue(response.getBody(), OAuth2AccessToken.class);
+			serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token", formData);
 			fail("Expected Exception");
-		} catch(InvalidScopeException success) {}
-
+		}catch(ExtendedHttpClientErrorException success) {
+			ClientHttpResponse response = success.getResponse();
+			assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+			assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
+			InvalidScopeException oauthException = success.getOAuth2Exception();
+		}
 	}
 
 	@Test

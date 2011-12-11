@@ -45,6 +45,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.http.converter.CompositeHttpMessageConverter;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.error.DefaultProviderExceptionHandler;
 import org.springframework.security.oauth2.provider.error.ProviderExceptionHandler;
@@ -56,7 +57,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 
 /**
  * @author Dave Syer
- * 
+ *
  */
 public class AbstractEndpoint implements InitializingBean {
 
@@ -89,7 +90,7 @@ public class AbstractEndpoint implements InitializingBean {
 	public void setTokenGranter(TokenGranter tokenGranter) {
 		this.tokenGranter = tokenGranter;
 	}
-	
+
 	protected TokenGranter getTokenGranter() {
 		return tokenGranter;
 	}
@@ -130,7 +131,7 @@ public class AbstractEndpoint implements InitializingBean {
 
 	/**
 	 * Finds the client secret for the given client id and request. See the OAuth 2 spec, section 2.1.
-	 * 
+	 *
 	 * @param request The request.
 	 * @return The client secret, or null if none found in the request.
 	 */
@@ -212,6 +213,7 @@ public class AbstractEndpoint implements InitializingBean {
 	private List<HttpMessageConverter<?>> geDefaultMessageConverters() {
 		List<HttpMessageConverter<?>> result = new ArrayList<HttpMessageConverter<?>>();
 		result.add(new PreconvertedHttpMessageConverter());
+		result.add(CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER);
 		return result;
 	}
 

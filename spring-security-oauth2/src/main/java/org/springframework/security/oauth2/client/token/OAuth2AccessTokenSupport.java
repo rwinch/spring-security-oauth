@@ -88,8 +88,8 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 			HttpHeaders headers = new HttpHeaders();
 			getAuthenticationHandler().authenticateTokenRequest(resource, form, headers);
 
-			return getRestTemplate().getForObject(getAccessTokenUri(resource, form), OAuth2AccessToken.class, getHttpMethod(),
-					getRequestCallback(resource, form, headers), form.toSingleValueMap());
+			return getRestTemplate().execute(getAccessTokenUri(resource, form), getHttpMethod(),
+					getRequestCallback(resource, form, headers), getResponseExtractor(), form.toSingleValueMap());
 
 		}
 		catch (OAuth2Exception oe) {
@@ -134,7 +134,7 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 
 	protected ResponseExtractor<OAuth2AccessToken> getResponseExtractor() {
 		return new HttpMessageConverterExtractor<OAuth2AccessToken>(OAuth2AccessToken.class,
-				Arrays.<HttpMessageConverter<?>> asList(new OAuth2AccessTokenMessageConverter()));
+				Arrays.<HttpMessageConverter<?>> asList(CompositeHttpMessageConverter.ACCESS_TOKEN_CONVERTER));
 	}
 
 	protected RequestCallback getRequestCallback(OAuth2ProtectedResourceDetails resource,
@@ -179,30 +179,5 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 			super.handleError(response);
 		}
 
-	}
-
-	private class OAuth2AccessTokenMessageConverter extends AbstractHttpMessageConverter<OAuth2AccessToken> {
-		private HttpMessageConverter<OAuth2AccessToken> tokenConverter = CompositeHttpMessageConverter.ACCESS_TOKEN_CONVERTER;
-
-		private OAuth2AccessTokenMessageConverter() {
-			super(new MediaType("*", "*"));
-		}
-
-		@Override
-		protected boolean supports(Class<?> clazz) {
-			return OAuth2AccessToken.class.isAssignableFrom(clazz);
-		}
-
-		@Override
-		protected OAuth2AccessToken readInternal(Class<? extends OAuth2AccessToken> clazz, HttpInputMessage response)
-				throws IOException, HttpMessageNotReadableException {
-			return tokenConverter.read(clazz, response);
-		}
-
-		@Override
-		protected void writeInternal(OAuth2AccessToken oAuth2AccessToken, HttpOutputMessage outputMessage)
-				throws IOException, HttpMessageNotWritableException {
-			throw new HttpMessageNotWritableException("Access token support shouldn't need to write access tokens.");
-		}
 	}
 }

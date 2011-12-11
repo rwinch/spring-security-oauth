@@ -44,16 +44,20 @@ public final class OAuth2ExceptionJsonDeserializer  extends StdDeserializer<OAut
 	@Override
 	public OAuth2Exception deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
 			JsonProcessingException {
-		String errorType = jp.getText();
+
+		String errorType = null;
 		String errorDesc = "N/A";
 		Map<String,String> moreInfo = new HashMap<String,String>();
 		while (jp.nextToken() != JsonToken.END_OBJECT) {
 			String name = jp.getCurrentName();
 			jp.nextToken();
-			if (JsonOAuth2ErrorConstants.DESCRIPTION.equals(name)) {
-				errorDesc = jp.getText();
+			String value = jp.getText();
+			if(JsonOAuth2ErrorConstants.ERROR.equals(name)) {
+				errorType = value;
+			} else if (JsonOAuth2ErrorConstants.DESCRIPTION.equals(name)) {
+				errorDesc = value;
 			} else {
-				moreInfo.put(name,jp.getText());
+				moreInfo.put(name,value);
 			}
 		}
 		OAuth2Exception result = null;

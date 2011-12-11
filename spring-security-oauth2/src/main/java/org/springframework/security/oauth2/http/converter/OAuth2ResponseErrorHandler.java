@@ -25,7 +25,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResponseErrorHandler;
 
 public class OAuth2ResponseErrorHandler implements ResponseErrorHandler {
-	private HttpMessageConverter<Object> messageConverter;
+	private HttpMessageConverter<OAuth2Exception> messageConverter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
 
 	public boolean hasError(ClientHttpResponse response) throws IOException {
 		HttpStatus statusCode = response.getStatusCode();
@@ -37,8 +37,9 @@ public class OAuth2ResponseErrorHandler implements ResponseErrorHandler {
 		HttpStatus statusCode = response.getStatusCode();
 		MediaType contentType = response.getHeaders().getContentType();
 		Charset charset = contentType != null ? contentType.getCharSet() : null;
-		byte[] body = FileCopyUtils.copyToByteArray(response.getBody());
-		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(statusCode, response.getStatusText(), body, charset);
+//		byte[] body = FileCopyUtils.copyToByteArray(response.getBody());
+		// FIXME new HttpClientErrorException(statusCode, response.getStatusText(), body, charset);
+		HttpClientErrorException httpClientErrorException = new HttpClientErrorException(statusCode);
 		throw (HttpClientErrorException) httpClientErrorException.initCause(result);
 	}
 }

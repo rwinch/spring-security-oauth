@@ -70,6 +70,10 @@ public class TestRefreshTokenSupport {
 
 		// make sure the old access token isn't valid anymore.
 		headers.set("Authorization", String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, accessToken.getValue()));
-		assertEquals(HttpStatus.UNAUTHORIZED, serverRunning.getStatusCode("/sparklr2/photos?format=json", headers));
+		try {
+			serverRunning.getStatusCode("/sparklr2/photos?format=json", headers);
+		}catch(ExtendedHttpClientErrorException e) {
+			assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+		}
 	}
 }

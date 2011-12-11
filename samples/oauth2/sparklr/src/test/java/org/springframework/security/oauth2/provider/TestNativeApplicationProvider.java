@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author Ryan Heaton
@@ -103,8 +104,13 @@ public class TestNativeApplicationProvider {
 		formData.add("client_id", "my-trusted-client-with-secret");
 		formData.add("username", "marissa");
 		formData.add("password", "koala");
-		ResponseEntity<String> response = serverRunning.postForString("/sparklr2/oauth/token", formData);
-		assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+		try {
+			serverRunning.postForString("/sparklr2/oauth/token", formData);
+			fail("Expected Exception");
+		}catch(HttpClientErrorException e) {
+			assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+		}
+
 	}
 
 	/**
