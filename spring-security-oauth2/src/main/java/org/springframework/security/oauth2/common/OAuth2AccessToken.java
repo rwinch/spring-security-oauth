@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.security.oauth2.jackson.OAuth2AccessTokenJsonDeserializer;
@@ -17,6 +19,7 @@ import org.springframework.security.oauth2.jackson.OAuth2AccessTokenJsonSerializ
  */
 @JsonSerialize(using=OAuth2AccessTokenJsonSerializer.class)
 @JsonDeserialize(using=OAuth2AccessTokenJsonDeserializer.class)
+@XmlRootElement(name="oauth")
 public class OAuth2AccessToken implements Serializable {
 
 	private static final long serialVersionUID = 914967629530462926L;
