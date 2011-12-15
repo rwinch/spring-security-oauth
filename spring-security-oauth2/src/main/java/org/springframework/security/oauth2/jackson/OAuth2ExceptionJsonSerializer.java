@@ -19,9 +19,10 @@ import java.util.Map.Entry;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.std.SerializerBase;
+import org.codehaus.jackson.map.ser.SerializerBase;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 
+@SuppressWarnings("deprecation")
 public final class OAuth2ExceptionJsonSerializer extends SerializerBase<OAuth2Exception> {
 
 	protected OAuth2ExceptionJsonSerializer() {

@@ -20,7 +20,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.std.SerializerBase;
+import org.codehaus.jackson.map.ser.SerializerBase;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.util.Assert;
@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * @author Rob Winch
  * @see OAuth2AccessTokenJsonDeserializer
  */
+@SuppressWarnings("deprecation")
 public final class OAuth2AccessTokenJsonSerializer extends SerializerBase<OAuth2AccessToken> {
 
 	public OAuth2AccessTokenJsonSerializer() {
