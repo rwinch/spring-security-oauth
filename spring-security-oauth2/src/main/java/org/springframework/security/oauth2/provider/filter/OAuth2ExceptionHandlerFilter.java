@@ -16,8 +16,7 @@
 package org.springframework.security.oauth2.provider.filter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.Arrays;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -27,10 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
+import org.springframework.security.oauth2.client.HttpEntityResponseWriter;
+import org.springframework.security.oauth2.client.HttpMessageConverterWriter;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.http.converter.CompositeHttpMessageConverter;
+import org.springframework.security.oauth2.http.converter.FormOAuth2ExceptionHttpMessageConverter;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2ExceptionMessageConverter;
 import org.springframework.security.oauth2.provider.error.DefaultProviderExceptionHandler;
 import org.springframework.security.oauth2.provider.error.ProviderExceptionHandler;
 import org.springframework.web.filter.GenericFilterBean;
@@ -44,6 +47,11 @@ import org.springframework.web.filter.GenericFilterBean;
 public class OAuth2ExceptionHandlerFilter extends GenericFilterBean {
 
 	private ProviderExceptionHandler providerExceptionHandler = new DefaultProviderExceptionHandler();
+
+	@SuppressWarnings("unchecked")
+	private HttpEntityResponseWriter<OAuth2Exception> entityWriter = new HttpMessageConverterWriter<OAuth2Exception>(
+			Arrays.asList(new JaxbOAuth2ExceptionMessageConverter(), new MappingJacksonHttpMessageConverter(),
+					new FormOAuth2ExceptionHttpMessageConverter()));
 
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException,
 			ServletException {
@@ -61,17 +69,9 @@ public class OAuth2ExceptionHandlerFilter extends GenericFilterBean {
 			throw ex;
 		}
 		catch (Exception ex) {
-
+			ResponseEntity<OAuth2Exception> result;
 			try {
-				ResponseEntity<OAuth2Exception> result = providerExceptionHandler.handle(ex);
-				HttpMessageConverter<OAuth2Exception> converter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
-				response.setStatus(result.getStatusCode().value());
-				for (Entry<String, List<String>> entry : result.getHeaders().entrySet()) {
-					for (String value : entry.getValue()) {
-						response.addHeader(entry.getKey(), value);
-					}
-				}
-				converter.write(result.getBody(), result.getHeaders().getContentType(), new ServletServerHttpResponse(response));
+				result = providerExceptionHandler.handle(ex);
 			}
 			catch (ServletException e) {
 				throw e;
@@ -85,8 +85,10 @@ public class OAuth2ExceptionHandlerFilter extends GenericFilterBean {
 			catch (Exception e) {
 				// Wrap other Exceptions. These are not expected to happen
 				throw new RuntimeException(e);
-
 			}
+			ServletServerHttpRequest inputMessage = new ServletServerHttpRequest(request);
+			ServletServerHttpResponse outputMessage = new ServletServerHttpResponse(response);
+			entityWriter.writeHttpEntityResponse(inputMessage, outputMessage, result);
 		}
 	}
 

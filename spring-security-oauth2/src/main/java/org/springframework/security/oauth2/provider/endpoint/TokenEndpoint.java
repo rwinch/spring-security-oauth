@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
@@ -55,7 +54,6 @@ public class TokenEndpoint extends AbstractEndpoint {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Cache-Control", "no-store");
 		responseHeaders.set("Pragma", "no-cache");
-		//responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		return new ResponseEntity<OAuth2AccessToken>(token, responseHeaders, HttpStatus.OK);
 	}
 

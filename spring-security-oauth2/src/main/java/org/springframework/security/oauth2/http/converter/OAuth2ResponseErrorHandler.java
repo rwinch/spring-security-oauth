@@ -18,14 +18,14 @@ import java.nio.charset.Charset;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.security.oauth2.client.DefaultOAuth2ExceptionTokenResponseExtractor;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.ResponseExtractor;
 
 public class OAuth2ResponseErrorHandler implements ResponseErrorHandler {
-	private HttpMessageConverter<OAuth2Exception> messageConverter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
+	private ResponseExtractor<OAuth2Exception> responseExtractor = new DefaultOAuth2ExceptionTokenResponseExtractor();
 
 	public boolean hasError(ClientHttpResponse response) throws IOException {
 		HttpStatus statusCode = response.getStatusCode();
@@ -33,7 +33,7 @@ public class OAuth2ResponseErrorHandler implements ResponseErrorHandler {
 	}
 
 	public void handleError(ClientHttpResponse response) throws IOException {
-		OAuth2Exception result = (OAuth2Exception) messageConverter.read(OAuth2Exception.class, response);
+		OAuth2Exception result = (OAuth2Exception) responseExtractor.extractData(response);
 		HttpStatus statusCode = response.getStatusCode();
 		MediaType contentType = response.getHeaders().getContentType();
 		Charset charset = contentType != null ? contentType.getCharSet() : null;

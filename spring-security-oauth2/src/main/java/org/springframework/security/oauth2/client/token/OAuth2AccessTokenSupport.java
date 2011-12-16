@@ -8,29 +8,23 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.security.oauth2.client.DefaultOAuth2AccessTokenResponseExtractor;
+import org.springframework.security.oauth2.client.DefaultOAuth2ExceptionTokenResponseExtractor;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.auth.ClientAuthenticationHandler;
 import org.springframework.security.oauth2.client.token.auth.DefaultClientAuthenticationHandler;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.http.converter.CompositeHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
@@ -133,8 +127,7 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 	}
 
 	protected ResponseExtractor<OAuth2AccessToken> getResponseExtractor() {
-		return new HttpMessageConverterExtractor<OAuth2AccessToken>(OAuth2AccessToken.class,
-				Arrays.<HttpMessageConverter<?>> asList(CompositeHttpMessageConverter.ACCESS_TOKEN_CONVERTER));
+		return new DefaultOAuth2AccessTokenResponseExtractor();
 	}
 
 	protected RequestCallback getRequestCallback(OAuth2ProtectedResourceDetails resource,
@@ -165,15 +158,13 @@ public abstract class OAuth2AccessTokenSupport implements InitializingBean {
 	}
 
 	private class AccessTokenErrorHandler extends DefaultResponseErrorHandler {
-		private HttpMessageConverter<OAuth2Exception> errorConverter = CompositeHttpMessageConverter.OAUTH2_EXCEPTION_CONVERTER;
+		private ResponseExtractor<OAuth2Exception> exceptionExtractor = new DefaultOAuth2ExceptionTokenResponseExtractor();
 		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
 			MediaType contentType = response.getHeaders().getContentType();
 			if (contentType != null
 					&& (response.getStatusCode().value() == 400 || response.getStatusCode().value() == 401)) {
-				if(errorConverter.canRead(OAuth2Exception.class, contentType)) {
-					throw errorConverter.read(OAuth2Exception.class, response);
-				}
+				throw exceptionExtractor.extractData(response);
 			}
 
 			super.handleError(response);
