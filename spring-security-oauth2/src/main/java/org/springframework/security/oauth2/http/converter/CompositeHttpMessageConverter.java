@@ -29,13 +29,15 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.jaxb.JaxbOAuth2AccessTokenMessageConverter;
+import org.springframework.security.oauth2.jaxb.JaxbOAuth2ExceptionMessageConverter;
 
 public final class CompositeHttpMessageConverter<T> implements HttpMessageConverter<T> {
 	public static final CompositeHttpMessageConverter<OAuth2AccessToken> ACCESS_TOKEN_CONVERTER = new CompositeHttpMessageConverter(
-			new MappingJacksonHttpMessageConverter(), new FormOAuth2AccessTokenMessageConverter());
+			new JaxbOAuth2AccessTokenMessageConverter(),new MappingJacksonHttpMessageConverter(), new FormOAuth2AccessTokenMessageConverter());
 
 	public static final CompositeHttpMessageConverter<OAuth2Exception> OAUTH2_EXCEPTION_CONVERTER = new CompositeHttpMessageConverter(
-			new MappingJacksonHttpMessageConverter(), new FormOAuth2ExceptionHttpMessageConverter());
+			new JaxbOAuth2ExceptionMessageConverter(),new MappingJacksonHttpMessageConverter(), new FormOAuth2ExceptionHttpMessageConverter());
 
 	private List<HttpMessageConverter<Object>> delegates;
 	private List<MediaType> mediaTypes;
@@ -86,6 +88,7 @@ public final class CompositeHttpMessageConverter<T> implements HttpMessageConver
 		for(HttpMessageConverter<Object> delegate : delegates) {
 			if(delegate.canWrite(t.getClass(), contentType)) {
 				delegate.write(t, contentType, outputMessage);
+				return;
 			}
 		}
 		throw new HttpMessageNotWritableException("Cannot write "+t+" for contentType "+contentType);

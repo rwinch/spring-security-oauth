@@ -28,6 +28,7 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.CommonsClientHttpRequestFactory;
 import org.springframework.security.oauth2.http.converter.OAuth2ResponseErrorHandler;
+import org.springframework.security.oauth2.jaxb.JaxbOAuth2AccessTokenMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;
@@ -187,7 +188,11 @@ public class ServerRunning extends TestWatchman {
 
 	public <T> ResponseEntity<T> postFor(Class<T> clazz, String path, MultiValueMap<String, String> formData) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		if(path.endsWith("format=xml")) {
+			headers.setAccept(Arrays.asList(MediaType.APPLICATION_XML));
+		} else {
+			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		}
 		return client.exchange(getUrl(path), HttpMethod.POST, new HttpEntity<MultiValueMap<String, String>>(formData,
 				headers), clazz);
 	}
@@ -263,6 +268,7 @@ public class ServerRunning extends TestWatchman {
 				}
 			}
 		});
+		client.getMessageConverters().add(0,new JaxbOAuth2AccessTokenMessageConverter());
 		return client;
 	}
 

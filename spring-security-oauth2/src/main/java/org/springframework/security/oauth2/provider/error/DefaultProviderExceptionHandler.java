@@ -72,7 +72,7 @@ public class DefaultProviderExceptionHandler implements ProviderExceptionHandler
 		int status = e.getHttpErrorCode();
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Cache-Control", "no-store");
-		headers.setContentType(MediaType.APPLICATION_JSON);
+//		headers.setContentType(MediaType.APPLICATION_JSON);
 		return new ResponseEntity<OAuth2Exception>(e,headers,HttpStatus.valueOf(status));
 		// FIXME Remove Provider Exception Handler
 //		converter.write(e, contentType, outputMessage)

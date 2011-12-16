@@ -14,65 +14,25 @@ package org.springframework.security.oauth2.jaxb;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({System.class,JaxbOAuth2AccessToken.class})
-public class TestJaxbOAuth2AccessTokenMessageConverter {
-	private static final String OAUTH_ACCESSTOKEN_NOEXPIRES = "<oauth><access_token>SlAV32hkKG</access_token></oauth>";
-	private static final String OAUTH_ACCESSTOKEN_NOREFRESH = "<oauth><access_token>SlAV32hkKG</access_token><expires_in>10</expires_in></oauth>";
-	private static final String OAUTH_ACCESSTOKEN = "<oauth><access_token>SlAV32hkKG</access_token><expires_in>10</expires_in><refresh_token>8xLOxBtZp8</refresh_token></oauth>";
+@PrepareForTest(JaxbOAuth2AccessToken.class)
+public class TestJaxbOAuth2AccessTokenMessageConverter extends BaseJaxbMessageConverterTest {
 	private JaxbOAuth2AccessTokenMessageConverter converter;
 	private OAuth2AccessToken accessToken;
-	private MediaType contentType;
-	private ByteArrayOutputStream output;
-
-	@Mock
-	private Date expiration;
-	@Mock
-	private HttpOutputMessage outputMessage;
-	@Mock
-	private HttpInputMessage inputMessage;
-	@Mock
-	private HttpHeaders headers;
 
 	@Before
-	public void setUp() throws Exception {
-		mockStatic(System.class);
-		long now = 1323123715041L;
-		when(System.currentTimeMillis()).thenReturn(now);
-		when(expiration.before(any(Date.class))).thenReturn(false);
-		when(expiration.getTime()).thenReturn(now + 10000);
-
-		output = new ByteArrayOutputStream();
+	public void before() throws Exception {
 		converter = new JaxbOAuth2AccessTokenMessageConverter();
-		contentType = MediaType.APPLICATION_XML;
-		when(headers.getContentType()).thenReturn(contentType);
-		when(outputMessage.getHeaders()).thenReturn(headers);
-		when(outputMessage.getBody()).thenReturn(output);
-
 		accessToken = new OAuth2AccessToken("SlAV32hkKG");
 		accessToken.setExpiration(expiration);
 		accessToken.setRefreshToken(new OAuth2RefreshToken("8xLOxBtZp8"));
@@ -121,14 +81,6 @@ public class TestJaxbOAuth2AccessTokenMessageConverter {
 		when(inputMessage.getBody()).thenReturn(createInputStream(OAUTH_ACCESSTOKEN_NOEXPIRES));
 		OAuth2AccessToken token = converter.read(OAuth2AccessToken.class, inputMessage);
 		assertTokenEquals(accessToken,token);
-	}
-
-	private InputStream createInputStream(String in) throws UnsupportedEncodingException {
-		return new ByteArrayInputStream(in.getBytes("UTF-8"));
-	}
-
-	private String getOutput() throws UnsupportedEncodingException {
-		return output.toString("UTF-8");
 	}
 
 	private static void assertTokenEquals(OAuth2AccessToken expected, OAuth2AccessToken actual) {

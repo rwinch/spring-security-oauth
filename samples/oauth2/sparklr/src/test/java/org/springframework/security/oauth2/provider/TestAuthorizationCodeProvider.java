@@ -158,6 +158,108 @@ public class TestAuthorizationCodeProvider {
 	}
 
 	/**
+	 * tests the basic authorization code provider
+	 */
+	@Test
+	public void testBasicAuthorizationCodeProviderAsXml() throws Exception {
+
+		WebClient userAgent = new WebClient(BrowserVersion.FIREFOX_3);
+		userAgent.setRedirectEnabled(false);
+
+		URI uri = serverRunning.buildUri("/sparklr2/oauth/authorize").queryParam("response_type", "code")
+				.queryParam("state", "mystateid").queryParam("client_id", "my-less-trusted-client")
+				.queryParam("redirect_uri", "http://anywhere").queryParam("scope", "read").build();
+		String location = null;
+		try {
+			userAgent.getPage(uri.toString());
+			fail("should have been redirected to the login form.");
+		}
+		catch (FailingHttpStatusCodeException e) {
+			location = e.getResponse().getResponseHeaderValue("Location");
+		}
+
+		HtmlPage loginPage = userAgent.getPage(location);
+		// should be directed to the login screen...
+		HtmlForm loginForm = loginPage.getFormByName("loginForm");
+		((HtmlTextInput) loginForm.getInputByName("j_username")).setValueAttribute("marissa");
+		((HtmlTextInput) loginForm.getInputByName("j_password")).setValueAttribute("koala");
+		try {
+			((HtmlSubmitInput) loginForm.getInputByName("login")).click();
+			fail("should have been redirected to the authorization endpoint.");
+		}
+		catch (FailingHttpStatusCodeException e) {
+			location = e.getResponse().getResponseHeaderValue("Location");
+		}
+
+		HtmlPage confirmationPage = userAgent.getPage(location);
+		HtmlForm okForm = confirmationPage.getFormByName("confirmationForm");
+		try {
+			((HtmlSubmitInput) okForm.getInputByName("authorize")).click();
+			fail("should have been redirected to the redirect page.");
+		}
+		catch (FailingHttpStatusCodeException e) {
+			location = e.getResponse().getResponseHeaderValue("Location");
+		}
+
+		URI redirection = serverRunning.buildUri(location).build();
+		assertEquals("anywhere", redirection.getHost());
+		assertEquals("http", redirection.getScheme());
+		assertNotNull(redirection.getQuery());
+
+		String code = null;
+		String state = null;
+		for (StringTokenizer queryTokens = new StringTokenizer(redirection.getQuery(), "&="); queryTokens
+				.hasMoreTokens();) {
+			String token = queryTokens.nextToken();
+			if ("code".equals(token)) {
+				if (code != null) {
+					fail("shouldn't have returned more than one code.");
+				}
+
+				code = queryTokens.nextToken();
+			}
+			else if ("state".equals(token)) {
+				state = queryTokens.nextToken();
+			}
+		}
+
+		assertEquals("mystateid", state);
+		assertNotNull(code);
+
+		// we've got the authorization code. now we should be able to get an access token.
+		MultiValueMap<String, String> formData = new LinkedMultiValueMap<String, String>();
+		formData.add("grant_type", "authorization_code");
+		formData.add("client_id", "my-less-trusted-client");
+		formData.add("scope", "read");
+		formData.add("redirect_uri", "http://anywhere");
+		formData.add("code", code);
+		formData.add("state", state);
+
+		ResponseEntity<OAuth2AccessToken> response = serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token?format=xml", formData);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("no-store", response.getHeaders().getFirst("Cache-Control"));
+		OAuth2AccessToken accessToken = response.getBody();
+
+		// let's try that request again and make sure we can't re-use the authorization code...
+		try {
+			serverRunning.postFor(OAuth2AccessToken.class,"/sparklr2/oauth/token?format=xml", formData);
+			fail("Expected Exception");
+		}catch(ExtendedHttpClientErrorException success) {
+			success.printStackTrace();
+			assertTrue(success.getOAuth2Exception() instanceof InvalidGrantException);
+		}
+
+//		// now try and use the token to access a protected resource.
+//
+//		// first make sure the resource is actually protected.
+//		assertNotSame(HttpStatus.OK, serverRunning.getStatusCode("/sparklr2/photos?format=json"));
+//
+//		// now make sure an authorized request is valid.
+//		HttpHeaders headers = new HttpHeaders();
+//		headers.set("Authorization", String.format("%s %s", OAuth2AccessToken.BEARER_TYPE, accessToken.getValue()));
+//		assertEquals(HttpStatus.OK, serverRunning.getStatusCode("/sparklr2/photos?format=json", headers));
+	}
+	/**
 	 * tests failure of getting the access token if some params are missing
 	 */
 	@Test

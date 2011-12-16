@@ -72,6 +72,51 @@ public class OAuth2Exception extends AuthenticationException {
 	}
 
 	/**
+	 * Creates the appropriate subclass of OAuth2Exception given the errorCode.
+	 * @param errorCode
+	 * @param errorMessage
+	 * @return
+	 */
+	public static OAuth2Exception create(String errorCode, String errorMessage) {
+		if (errorMessage == null) {
+			errorMessage = errorCode == null ? "OAuth Error" : errorCode;
+		}
+		if ("invalid_client".equals(errorCode)) {
+			return new InvalidClientException(errorMessage);
+		}
+		else if ("unauthorized_client".equals(errorCode)) {
+			return new UnauthorizedClientException(errorMessage);
+		}
+		else if ("invalid_grant".equals(errorCode)) {
+			return new InvalidGrantException(errorMessage);
+		}
+		else if ("invalid_scope".equals(errorCode)) {
+			return new InvalidScopeException(errorMessage);
+		}
+		else if ("invalid_token".equals(errorCode)) {
+			return new InvalidTokenException(errorMessage);
+		}
+		else if ("invalid_request".equals(errorCode)) {
+			return new InvalidRequestException(errorMessage);
+		}
+		else if ("redirect_uri_mismatch".equals(errorCode)) {
+			return new RedirectMismatchException(errorMessage);
+		}
+		else if ("unsupported_grant_type".equals(errorCode)) {
+			return new UnsupportedGrantTypeException(errorMessage);
+		}
+		else if ("unsupported_response_type".equals(errorCode)) {
+			return new UnsupportedResponseTypeException(errorMessage);
+		}
+		else if ("access_denied".equals(errorCode)) {
+			return new UserDeniedAuthorizationException(errorMessage);
+		}
+		else {
+			return new OAuth2Exception(errorMessage);
+		}
+	}
+
+	/**
 	 * Creates an {@link OAuth2Exception} from a Map<String,String>.
 	 *
 	 * @param errorParams
@@ -81,44 +126,7 @@ public class OAuth2Exception extends AuthenticationException {
 		String errorCode = errorParams.get("error");
 		String errorMessage = errorParams.containsKey("error_description") ? errorParams.get("error_description")
 				: null;
-		if (errorMessage == null) {
-			errorMessage = errorCode == null ? "OAuth Error" : errorCode;
-		}
-		OAuth2Exception ex;
-		if ("invalid_client".equals(errorCode)) {
-			ex = new InvalidClientException(errorMessage);
-		}
-		else if ("unauthorized_client".equals(errorCode)) {
-			ex = new UnauthorizedClientException(errorMessage);
-		}
-		else if ("invalid_grant".equals(errorCode)) {
-			ex = new InvalidGrantException(errorMessage);
-		}
-		else if ("invalid_scope".equals(errorCode)) {
-			ex = new InvalidScopeException(errorMessage);
-		}
-		else if ("invalid_token".equals(errorCode)) {
-			ex = new InvalidTokenException(errorMessage);
-		}
-		else if ("invalid_request".equals(errorCode)) {
-			ex = new InvalidRequestException(errorMessage);
-		}
-		else if ("redirect_uri_mismatch".equals(errorCode)) {
-			ex = new RedirectMismatchException(errorMessage);
-		}
-		else if ("unsupported_grant_type".equals(errorCode)) {
-			ex = new UnsupportedGrantTypeException(errorMessage);
-		}
-		else if ("unsupported_response_type".equals(errorCode)) {
-			ex = new UnsupportedResponseTypeException(errorMessage);
-		}
-		else if ("access_denied".equals(errorCode)) {
-			ex = new UserDeniedAuthorizationException(errorMessage);
-		}
-		else {
-			ex = new OAuth2Exception(errorMessage);
-		}
-
+		OAuth2Exception ex = create(errorCode,errorMessage);
 		Set<Map.Entry<String, String>> entries = errorParams.entrySet();
 		for (Map.Entry<String, String> entry : entries) {
 			String key = entry.getKey();
