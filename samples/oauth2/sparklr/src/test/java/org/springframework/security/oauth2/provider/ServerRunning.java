@@ -28,7 +28,7 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.CommonsClientHttpRequestFactory;
 import org.springframework.security.oauth2.http.converter.OAuth2ResponseErrorHandler;
-import org.springframework.security.oauth2.jaxb.JaxbOAuth2AccessTokenMessageConverter;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2AccessTokenMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RequestCallback;

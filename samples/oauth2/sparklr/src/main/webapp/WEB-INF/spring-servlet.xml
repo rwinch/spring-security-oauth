@@ -77,7 +77,7 @@
 
 	<mvc:annotation-driven >
 		<mvc:message-converters>
-			<bean class="org.springframework.security.oauth2.jaxb.JaxbOAuth2AccessTokenMessageConverter"/>
+			<bean class="org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2AccessTokenMessageConverter"/>
 		</mvc:message-converters>
 	</mvc:annotation-driven>
 

@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.jackson.OAuth2ExceptionJsonDeserializer;
-import org.springframework.security.oauth2.jackson.OAuth2ExceptionJsonSerializer;
+import org.springframework.security.oauth2.http.converter.jackson.OAuth2ExceptionJsonDeserializer;
+import org.springframework.security.oauth2.http.converter.jackson.OAuth2ExceptionJsonSerializer;
 
 /**
  * Base exception for OAuth 2 authentication exceptions.

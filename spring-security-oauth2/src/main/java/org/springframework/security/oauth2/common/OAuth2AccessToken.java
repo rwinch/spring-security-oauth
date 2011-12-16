@@ -8,8 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.springframework.security.oauth2.jackson.OAuth2AccessTokenJsonDeserializer;
-import org.springframework.security.oauth2.jackson.OAuth2AccessTokenJsonSerializer;
+import org.springframework.security.oauth2.http.converter.jackson.OAuth2AccessTokenJsonDeserializer;
+import org.springframework.security.oauth2.http.converter.jackson.OAuth2AccessTokenJsonSerializer;
 
 /**
  * Basic access token for OAuth 2.

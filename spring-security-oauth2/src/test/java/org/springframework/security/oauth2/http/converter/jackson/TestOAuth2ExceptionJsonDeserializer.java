@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.security.oauth2.jackson;
+package org.springframework.security.oauth2.http.converter.jackson;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.common.exceptions.RedirectMismatchExc
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.common.exceptions.UserDeniedAuthorizationException;
+import org.springframework.security.oauth2.http.converter.jackson.JsonOAuth2ErrorConstants;
 
 public class TestOAuth2ExceptionJsonDeserializer  {
 

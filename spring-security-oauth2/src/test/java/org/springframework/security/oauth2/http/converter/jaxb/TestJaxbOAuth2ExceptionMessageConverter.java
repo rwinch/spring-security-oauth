@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.security.oauth2.jaxb;
+package org.springframework.security.oauth2.http.converter.jaxb;
 
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -26,6 +26,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2AccessToken;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2ExceptionMessageConverter;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({System.class,JaxbOAuth2AccessToken.class})

@@ -29,8 +29,8 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
-import org.springframework.security.oauth2.jaxb.JaxbOAuth2AccessTokenMessageConverter;
-import org.springframework.security.oauth2.jaxb.JaxbOAuth2ExceptionMessageConverter;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2AccessTokenMessageConverter;
+import org.springframework.security.oauth2.http.converter.jaxb.JaxbOAuth2ExceptionMessageConverter;
 
 public final class CompositeHttpMessageConverter<T> implements HttpMessageConverter<T> {
 	public static final CompositeHttpMessageConverter<OAuth2AccessToken> ACCESS_TOKEN_CONVERTER = new CompositeHttpMessageConverter(

@@ -1,4 +1,4 @@
-package org.springframework.security.oauth2.jackson;
+package org.springframework.security.oauth2.http.converter.jackson;
 
 import static org.junit.Assert.assertEquals;
 
@@ -9,6 +9,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Test;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.http.converter.jackson.OAuth2AccessTokenJsonSerializer;
 
 /**
  * Tests serialization of an {@link OAuth2AccessToken} using jackson.
