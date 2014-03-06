@@ -44,7 +44,7 @@ import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
 /**
- * 
+ *
  * @author Rob Winch
  * @since 3.2
  */
@@ -82,6 +82,7 @@ public final class OAuth2ResourceServerConfigurer extends
 	@Override
 	public void init(HttpSecurity http) throws Exception {
 		registerDefaultAuthenticationEntryPoint(http);
+		http.csrf().disable();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,6 +109,8 @@ public final class OAuth2ResourceServerConfigurer extends
 		return this;
 	}
 
+
+
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
 
@@ -118,7 +121,6 @@ public final class OAuth2ResourceServerConfigurer extends
 
 		// @formatter:off
 		http
-			.csrf().disable()
 			.authorizeRequests().expressionHandler(expressionHandler)
 		.and()
 			.addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class)
