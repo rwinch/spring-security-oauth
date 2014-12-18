@@ -128,7 +128,17 @@ public final class ResourceServerSecurityConfigurer extends
 	@Override
 	public void init(HttpSecurity http) throws Exception {
 		registerDefaultAuthenticationEntryPoint(http);
-		http.csrf().disable();
+		// @formatter:off
+		http
+			.csrf().disable()
+			.authorizeRequests()
+				.expressionHandler(expressionHandler)
+				.and()
+			.exceptionHandling()
+				.accessDeniedHandler(accessDeniedHandler)
+				.and()
+			;
+		// @formatter:on
 	}
 
 	@SuppressWarnings("unchecked")
@@ -172,10 +182,7 @@ public final class ResourceServerSecurityConfigurer extends
 
 		// @formatter:off
 		http
-			.authorizeRequests().expressionHandler(expressionHandler)
-		.and()
-			.addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class)
-			.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+			.addFilterBefore(resourcesServerFilter, AbstractPreAuthenticatedProcessingFilter.class);
 		// @formatter:on
 	}
 
